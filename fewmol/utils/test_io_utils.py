@@ -1,6 +1,7 @@
 import torch
 from fewmol.utils.train_utils import eval
 
+
 # test the last epoch saved model
 def test_last_model(model, checkpoint, test_loader):
     print("Loading last epoch saved model weights...")

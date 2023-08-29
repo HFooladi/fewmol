@@ -45,8 +45,8 @@ def select_test_assay(
             test_id = i
             break
         else:
-            print((f"Assay {chembl_id} is not in the test set."))
-            return None
+            raise KeyError((f"Assay {chembl_id} is not in the test set."))
+    
     x = distance_mat[:, test_id]
     return x
 
@@ -89,3 +89,31 @@ def total_distance(df, operation="sum"):
 
     else:
         raise ValueError(f"Operation {operation} is not supported. Use supported operations")
+
+
+def final_distance_df(
+    lookup_table: Dict,
+    chemical_distance_dict: Dict,
+    protein_distance_dict: Dict,
+    chembl_id: str,
+    operation: str = "sum",
+) -> pd.DataFrame:
+    d_mat, train_assays = select_training_assays(lookup_table, chemical_distance_dict)
+    d_mat_protein, train_assays_protein = select_training_assays(
+        lookup_table, protein_distance_dict
+    )
+
+    d_mat = select_test_assay(chembl_id, d_mat, chemical_distance_dict)
+    d_mat_protein = select_test_assay(chembl_id, d_mat_protein, protein_distance_dict)
+
+    chemical_df = create_distance_dataframe(d_mat, train_assays)
+    protein_df = create_distance_dataframe(d_mat_protein, train_assays_protein)
+
+    chemical_df["distance"] = normalize(chemical_df["distance"])
+    protein_df["distance"] = normalize(protein_df["distance"])
+
+    dist_df = merge_distance(chemical_df, protein_df)
+    df = total_distance(dist_df, operation=operation)
+    df.columns = ["distance"]
+
+    return df

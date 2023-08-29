@@ -70,5 +70,3 @@ def save_plots(train_acc, valid_acc, train_loss, valid_loss):
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig("outputs/loss.png")
-
-
