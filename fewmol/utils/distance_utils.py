@@ -46,7 +46,7 @@ def select_test_assay(
             break
         else:
             raise KeyError((f"Assay {chembl_id} is not in the test set."))
-    
+
     x = distance_mat[:, test_id]
     return x
 
