@@ -29,7 +29,7 @@ class SaveBestModel:
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": criterion,
                 },
-                f"outputs/finetuning/{self.name}_best_model.pth",
+                f"outputs/training/{self.name}_best_model.pth",
             )
 
 

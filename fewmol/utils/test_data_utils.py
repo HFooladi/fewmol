@@ -34,4 +34,3 @@ class TestDataUtils:
 
         for size in training_size_list:
             assert len(split[chembl_id][str(size)]["train"]) == size
-        
