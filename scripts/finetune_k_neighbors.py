@@ -1,3 +1,10 @@
+"""
+This script is used to finetune the model on the each test tasks. First for each test task,
+We are finding k-nearest neighbors (training datasets) based on the distance matrix. Then, we trained
+the model on the k-nearest neighbors and finetune the model on the test task.
+For each test task, we are using predefined split for training and validation.
+"""
+
 import argparse
 import json
 import os
