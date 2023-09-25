@@ -1,30 +1,27 @@
+import argparse
+import json
 import os
 import os.path as osp
 import sys
-import json
-
-from tqdm import tqdm
-import argparse
 import time
-import numpy as np
 
+import numpy as np
 import torch
-from torch_geometric.loader import DataLoader
-import torch.optim as optim
 import torch.nn.functional as F
+import torch.optim as optim
+from torch_geometric.loader import DataLoader
+from tqdm import tqdm
 
 CHECKOUT_PATH = os.path.join(os.environ["HOME"], "Documents", "hfooladi", "TLMOL", "fewmol")
 os.chdir(CHECKOUT_PATH)
 sys.path.insert(0, CHECKOUT_PATH)
 
-from model.gnn import GNN, reset_weights
-from torch.utils.data import random_split
-from sklearn.model_selection import KFold
-
 from data.dataset import FSMOLDataset
 from data.evaluate import Evaluator
+from model.gnn import GNN, reset_weights
+from sklearn.model_selection import KFold
+from torch.utils.data import random_split
 from utils.io_utils import SaveBestModel, save_model, save_plots
-
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()

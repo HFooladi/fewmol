@@ -1,32 +1,30 @@
+import argparse
+import json
 import os
 import os.path as osp
 import sys
-import json
+import time
 from pathlib import Path
 
-from tqdm import tqdm
-import argparse
-import time
 import numpy as np
-
 import torch
-from torch_geometric.loader import DataLoader
-import torch.optim as optim
 import torch.nn.functional as F
+import torch.optim as optim
+from torch_geometric.loader import DataLoader
+from tqdm import tqdm
 
 CHECKOUT_PATH = Path(__file__).resolve().parent.parent
 os.chdir(CHECKOUT_PATH)
 sys.path.insert(0, CHECKOUT_PATH)
 
-from torch.utils.data import random_split
 from sklearn.model_selection import KFold
+from torch.utils.data import random_split
 
-from fewmol.model import GNN, reset_weights
 from fewmol.data.dataset import FSMOLDataset
 from fewmol.data.evaluate import Evaluator
+from fewmol.model import GNN, reset_weights
 from fewmol.utils.io_utils import SaveBestModel, save_model, save_plots
-from fewmol.utils.train_utils import train, eval
-
+from fewmol.utils.train_utils import eval, train
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()

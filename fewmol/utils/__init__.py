@@ -14,3 +14,6 @@ from fewmol.utils.data_utils import get_split, get_split_multiple_size, get_spli
 
 # import fewmol.utils related to train_utilities
 from fewmol.utils.train_utils import train_one_epoch, validation_one_epoch, eval
+
+# import fewmol.utils related to io_utilities
+from fewmol.utils.io_utils import SaveBestModel, save_model, save_plots

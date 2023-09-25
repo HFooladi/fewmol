@@ -13,9 +13,10 @@ class SaveBestModel:
     model state.
     """
 
-    def __init__(self, name, best_valid_loss=float("inf")):
+    def __init__(self, name, fold, best_valid_loss=float("inf")):
         self.best_valid_loss = best_valid_loss
         self.name = name
+        self.fold = fold
 
     def __call__(self, current_valid_loss, epoch, model, optimizer, criterion):
         if current_valid_loss < self.best_valid_loss:
@@ -29,7 +30,7 @@ class SaveBestModel:
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": criterion,
                 },
-                f"outputs/training/{self.name}_best_model.pth",
+                f"outputs/finetuning/{self.name}/{self.name}_{self.fold}_best_model.pth",
             )
 
 

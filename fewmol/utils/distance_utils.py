@@ -14,6 +14,17 @@ def normalize(x):
 def select_training_assays(
     lookup_table: Dict, distance_dict: Dict
 ) -> Tuple[torch.Tensor, List[str]]:
+    """
+    Select the training assays (that are available in lookup table)
+    from the distance dictionary
+    
+    Args:
+        lookup_table (Dict): lookup table with train and test assay ids
+        distance_dict (Dict): distance dictionary with train and test assay ids
+    Returns:
+        d_mat (torch.Tensor): distance matrix of training assays
+        train_assays (List[str]): list of training assay ids
+    """
     assert (
         "train_chembl_ids" in distance_dict.keys()
     ), f"{distance_dict} must have train_chembl_ids key"
@@ -40,12 +51,10 @@ def select_test_assay(
     ), f"{distance_dict} must have test_chembl_ids key"
     assert distance_mat.ndim == 2, f"distance_mat must be 2D tensor, got {distance_mat.ndim}"
 
-    for i, assay in enumerate(distance_dict["test_chembl_ids"]):
-        if assay == chembl_id:
-            test_id = i
-            break
-        else:
-            raise KeyError((f"Assay {chembl_id} is not in the test set."))
+    try:
+        test_id = distance_dict["test_chembl_ids"].index(chembl_id)
+    except ValueError:
+        raise ValueError(f"Assay {chembl_id} is not in the test set.")
 
     x = distance_mat[:, test_id]
     return x
@@ -114,6 +123,7 @@ def final_distance_df(
 
     dist_df = merge_distance(chemical_df, protein_df)
     df = total_distance(dist_df, operation=operation)
+    df = pd.DataFrame(df)
     df.columns = ["distance"]
 
     return df

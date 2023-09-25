@@ -83,7 +83,7 @@ def parse_args():
         "--epochs", type=int, default=100, help="number of epochs to train (default: 100)"
     )
     parser.add_argument(
-        "--finetuning_epochs", type=int, default=10, help="number of epochs to train (default: 10)"
+        "--finetuning_epochs", type=int, default=40, help="number of epochs to train (default: 10)"
     )
     parser.add_argument("--num_workers", type=int, default=2, help="number of workers (default: 2)")
     parser.add_argument(
@@ -116,8 +116,8 @@ def parse_args():
     parser.add_argument(
         "--k_nearest",
         type=int,
-        default="5",
-        help="number of k nearest dataset to consider (default: 5)",
+        default="10",
+        help="number of k nearest dataset to consider (default: 10)",
     )
     parser.add_argument(
         "--strategy",
@@ -133,6 +133,8 @@ def parse_args():
 
 def main(chembl_id):
     args = parse_args()
+    fold = SPLIT_TO_FOLD[args.split_size]
+    dataset = FSMOLDataset(name=args.dataset, chembl_id=args.chembl_id)
 
     print("--------- START ---------")
     device = (
@@ -146,8 +148,12 @@ def main(chembl_id):
     if args.chembl_id == "":
         print("Please provide a valid chembl id")
         args.chembl_id = chembl_id
+    
+    output_dir = osp.join("outputs", "finetuning", args.chembl_id)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    writer = SummaryWriter(f"outputs/finetuning/{args.chembl_id}", comment=args.gnn)
+    writer = SummaryWriter(logdir=f"outputs/finetuning/runs/{args.gnn}/{args.chembl_id}", comment=args.gnn)
 
     with open(TRAIN_ASSAY_PATH, "r") as f:
         fsmol_lookup = json.load(f)
@@ -178,7 +184,7 @@ def main(chembl_id):
         data = FSMOLDataset(name=args.dataset, chembl_id=assay_id)
         training_tasks.extend([*data])
 
-    training_dataset = Batch(training_tasks)
+    training_dataset = Batch.from_data_list(training_tasks)
     print(training_dataset)
 
     train_size = int(0.8 * len(training_dataset))
@@ -242,7 +248,7 @@ def main(chembl_id):
     train_curve = []
     valid_curve = []
 
-    save_best_model = SaveBestModel(name=f"{args.chembl_id}")
+    save_best_model = SaveBestModel(name=f"{args.chembl_id}", fold=f"{SPLIT_TO_FOLD[args.split_size]}")
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
@@ -267,7 +273,7 @@ def main(chembl_id):
         model,
         optimizer,
         criterion=cls_criterion,
-        output_dir="outputs/finetuning",
+        output_dir=output_dir,
         name=f"{args.chembl_id}",
     )
 
@@ -282,7 +288,6 @@ def main(chembl_id):
     print("-------------------FINETUNING ON FSMOL---------------------")
 
     ### automatic dataloading and splitting
-    dataset = FSMOLDataset(name=args.dataset, chembl_id=args.chembl_id)
     print(dataset)
     if args.feature == "full":
         pass
@@ -292,9 +297,9 @@ def main(chembl_id):
         dataset.data.x = dataset.data.x[:, :2]
         dataset.data.edge_attr = dataset.data.edge_attr[:, :2]
 
-    test_task_dir = osp.join("outputs/epoch10", args.chembl_id)
+    test_task_dir = osp.join("outputs/training/gin", args.chembl_id)
     # Define data loaders for training and testing data in this fold
-    configs = torch.load(osp.join(test_task_dir, f"config_3.pth"))
+    configs = torch.load(osp.join(test_task_dir, f"config_{fold}.pth"))
     # Define data loaders for training and testing data in this fold
 
     # Print
@@ -327,9 +332,9 @@ def main(chembl_id):
 
         print(
             {
-                "Train": train_perf[dataset.eval_metric],
-                "Validation": valid_perf[dataset.eval_metric],
-                "Test": valid_perf[dataset.eval_metric],
+                "Train": test_train_perf[dataset.eval_metric],
+                "Validation": test_valid_perf[dataset.eval_metric],
+                "Test": test_valid_perf[dataset.eval_metric],
             }
         )
 

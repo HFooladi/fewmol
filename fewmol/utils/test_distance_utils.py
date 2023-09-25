@@ -1,6 +1,7 @@
 import pytest
+import pandas as pd
 import torch
-from fewmol.utils import select_training_assays, select_test_assay, create_distance_dataframe
+from fewmol.utils import select_training_assays, select_test_assay, create_distance_dataframe, merge_distance, total_distance, final_distance_df
 
 
 @pytest.fixture
@@ -49,5 +50,18 @@ class TestDistanceUtils:
         assert x.shape == (4,)
         assert x.tolist() == [0, 2, 4, 6]
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             x = select_test_assay("assay_h", distance_dict["distance_matrices"], distance_dict)
+    
+    def test_merge_distance(self):
+        df1 = pd.DataFrame({"distance": [1.0, 0.5, 3.5], "assay_id": ["assay_a", "assay_b", "assay_c"]})
+        df1.set_index("assay_id", inplace=True)
+        df2 = pd.DataFrame({"distance": [1.0, 0.5, 3.5], "assay_id": ["assay_a", "assay_b", "assay_c"]})
+        df2.set_index("assay_id", inplace=True)
+        df = merge_distance(df1, df2)
+        assert isinstance(df, pd.DataFrame)
+        assert df.shape == (3, 2)
+        assert df.index.tolist() == ["assay_a", "assay_b", "assay_c"]
+        assert df.columns.tolist() == ["distance_x", "distance_y"]
+        assert df["distance_x"].tolist() == [1.0, 0.5, 3.5]
+        assert df["distance_y"].tolist() == [1.0, 0.5, 3.5]
